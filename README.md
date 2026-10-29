@@ -1,143 +1,124 @@
 # STM32 High-Speed Line Follower Robot
 
-An STM32-based line follower robot focused on reliable line tracking,
-real-time motor control, and measured speed optimization.
+**Robotics Society of Varendra University (RSVU), Bangladesh**  
+**Status:** software prototype / hardware integration pending
 
-> **Project status:** In development\
-> **Performance status:** Baseline testing pending. No speed or
-> reliability claims are made until results are measured and documented.
-
-## Demo
-
-**Prototype video:** *Placeholder --- add a link after recording a real
-hardware demonstration.*
-
-`[Add demo video URL here]`
+A modular control-software foundation for a line-following robot targeting an STM32F103C8T6 (Blue Pill), a 14-channel analog IR sensor array, TB6612FNG dual motor driver, two nominal 800 RPM geared motors, and a 3S 900 mAh LiPo/Li-ion pack (11.1 V nominal). Exact sensor model, motor electrical ratings, regulator, and measured performance remain unverified.
 
 ## Objectives
+- Sample and calibrate 14 analog channels.
+- Estimate line position using a weighted centroid.
+- Apply bounded PID steering and a defined line-loss response.
+- Keep control logic testable independently of STM32 hardware.
+- Measure lap time, completion rate, and line-loss frequency only after track tests.
 
--   Read and calibrate an infrared line-sensor array.
--   Control two DC motors using an H-bridge motor driver and PWM.
--   Implement line-position estimation and a PID-based steering
-    controller.
--   Add line-loss detection and recovery behavior.
--   Measure lap time, completion rate, and line-loss frequency under
-    repeatable conditions.
+## Features
+- Hardware-independent C++ control primitives in `firmware/src/`.
+- Python reference model and deterministic tests in `tests/`.
+- Synthetic terminal demonstration.
+- Provisional BOM, pin map, wiring plan, safety checklist, and test protocol.
 
-## Hardware
-
-Update this list to match the components actually used.
-
--   STM32 development board: **\[exact board/model to be added\]**
--   IR line-sensor array: **\[model/channel count to be added\]**
--   DC gear motors and wheels: **\[specifications to be added\]**
--   Dual motor driver: **\[model to be added\]**
--   Battery and power regulation: **\[specifications to be added\]**
--   Chassis, wiring, and switch: **\[details to be added\]**
-
-See [`hardware/`](hardware/) for the bill of materials, wiring, pin
-mapping, and chassis files.
 
 ## Repository Structure
 
 ``` text
 stm32-high-speed-lfr/
-├── firmware/       # STM32 application, sensor/motor drivers, PID controller
-├── hardware/       # BOM, wiring diagrams, pin map, chassis files
-├── tests/          # Calibration data, lap logs, line-loss tests
-├── docs/           # Design notes, tuning report, test methodology
 ├── README.md
-├── LICENSE
-└── .gitignore
+├── .gitignore
+├── CONTRIBUTING.md
+├── firmware/
+│   ├── include/
+│   │   └── lfr_control.hpp
+│   └── src/
+│       └── smoke.cpp
+├── hardware/
+│   ├── BOM.md
+│   ├── pin-map.md
+│   └── wiring.md
+├── docs/
+│   ├── architecture.md
+│   └── development-plan.md
+└── tests/
+    ├── lfr_model.py
+    ├── test_lfr.py
+    ├── demo.py
+    ├── test-plan.md
+    └── example-results.csv
 ```
 
-## Software and Setup
+## Architecture
+`ADC acquisition -> per-channel calibration/normalization -> weighted position -> PID -> bounded left/right command -> motor driver`
 
-1.  Install the toolchain appropriate for the selected STM32 board (for
-    example, STM32CubeIDE).
-2.  Record the exact MCU/board revision and firmware toolchain version
-    in `docs/`.
-3.  Configure GPIO, PWM timer channels, and sensor inputs according to
-    the board pinout.
-4.  Build and flash the firmware.
-5.  Raise the robot on a stand for initial motor-direction and PWM tests
-    before placing it on the track.
-6.  Calibrate the sensor array on the actual track surface and save the
-    calibration procedure/results in `tests/`.
+The C++ code is a portable logic layer, not a complete STM32CubeIDE project: clock setup, ADC/DMA, timer PWM, GPIO, startup code, and board-specific HAL integration remain to be added after confirming the exact board and pin allocation.
 
-**Pin assignments are not final until the exact board and wiring are
-verified.** Check sensor output voltage compatibility with the STM32
-input pins before connecting them.
+See [docs/architecture.md](docs/architecture.md), [docs/development-plan.md](docs/development-plan.md), [tests/test-plan.md](tests/test-plan.md), and `hardware/`.
 
-## Control Approach
+## Components
+| Component | Current target | Verification |
+|---|---|---|
+| MCU board | STM32F103C8T6 Blue Pill | Board revision/clone and pinout pending |
+| Sensor array | 14-channel analog IR array | Exact model, output range, spacing and polarity pending |
+| Motor driver | TB6612FNG | Verify board breakout and current/thermal limits |
+| Motors | Geared motors advertised as 800 RPM | Voltage, stall current, gearbox/output RPM and encoder status pending |
+| Battery | 3S 900 mAh, 11.1 V nominal | Chemistry, discharge rating, connector and protection pending |
+| Logic regulator | Required, exact part TBD | Must suit input range and current demand |
+| Chassis, wheels, switch, wiring | Required | Select and document actual parts |
 
-1.  Sample and calibrate the line sensors.
-2.  Estimate the line position from the sensor readings.
-3.  Compute steering correction using a documented controller (initially
-    P, then PID if needed).
-4.  Apply bounded left/right motor PWM commands.
-5.  Detect line loss and enter a defined recovery state.
+## Setup
+Requirements: Python 3.9+ for tests/demo; a C++11 compiler for the portable control header; STM32CubeIDE only for later MCU integration. No Python third-party dependencies are required.
 
-Document controller parameters, sampling rate, PWM frequency, and any
-filtering choices in `docs/`.
+```bash
+python -m unittest discover -s tests -v
+python tests/demo.py
+```
 
-## Testing and Metrics
+Portable C++ smoke compile (if `g++` is installed):
+```bash
+g++ -std=c++11 -Wall -Wextra -Werror -Ifirmware/include firmware/src/smoke.cpp -o /tmp/lfr_smoke
+/tmp/lfr_smoke
+```
 
-Use the same track, start procedure, battery condition, and robot
-configuration when comparing changes.
+## Usage
+The Python demo uses synthetic sensor values; it is not a sensor capture or robot simulation. Example:
+```text
+Synthetic input: centered line
+position: 0.000
+line_detected: True
+bounded steering correction: 0.000
+```
+Exact output is available by running the command above.
 
-  -----------------------------------------------------------------------
-  Metric                  Definition              Status
-  ----------------------- ----------------------- -----------------------
-  Lap time                Elapsed time for one    Pending testing
-                          completed lap           
+## Testing
+Python tests cover weighted position, calibration bounds, line loss, PID proportional/integral/derivative behavior, and output saturation. The C++ smoke program checks portable primitives compile and execute. Neither test set validates ADC timing, motor electronics, speed, or track performance.
 
-  Completion rate         Completed laps / total  Pending testing
-                          attempts                
+## Results
+| Evidence | Status |
+|---|---|
+| Python unit tests | Run locally before presenting; record actual result |
+| C++ portable smoke test | Run locally if compiler available |
+| STM32CubeIDE target build | Pending hardware/toolchain integration |
+| Sensor calibration on track | Pending hardware validation |
+| Lap time / completion rate / line-loss rate | Pending hardware validation |
 
-  Line-loss count         Number of line-loss     Pending testing
-                          events per lap          
-
-  Battery voltage         Voltage recorded for    Pending testing
-                          each test session       
-
-  Controller              Firmware revision and   To be recorded
-  configuration           controller parameters   
-  -----------------------------------------------------------------------
-
-Record individual trials in `tests/` as CSV or another documented
-format. Do not publish estimated values as measured results.
-
-## Baseline Results
-
-**Status: Pending testing.** No baseline performance numbers are
-available yet.
-
-After testing, report the number of trials, track description, battery
-condition, firmware commit, summary statistics, and relevant
-limitations. Prefer median and range (or mean and standard deviation
-where appropriate) rather than reporting only the best lap.
-
-## Safety
-
--   Keep wheels off the ground during initial motor-direction tests.
--   Verify driver current limits and motor stall current before extended
-    operation.
--   Check battery polarity and voltage before powering the system.
--   Disconnect power before changing wiring.
+## Limitations
+- No hardware measurements are claimed.
+- Sensor polarity, channel order, ADC range, and line color are configurable assumptions.
+- PID gains are starting values only and require controlled tuning.
+- Line-loss recovery is a bounded search request, not a guarantee of reacquiring the track.
+- A 3S battery requires a suitable regulator and careful verification of driver voltage margin.
 
 ## Roadmap
+1. Confirm exact sensor/motor/battery/regulator specifications.
+2. Verify all voltage domains and stall-current limits.
+3. Implement CubeIDE ADC/PWM/GPIO adapters.
+4. Bench-test sensor readings with motors disconnected.
+5. Lift wheels and verify motor direction at low PWM.
+6. Calibrate on a marked track and tune controller.
+7. Run repeatable laps and publish raw CSV data.
 
--   [ ] Confirm board, sensor, motor-driver, and battery specifications
--   [ ] Document BOM and wiring
--   [ ] Validate sensor readings
--   [ ] Validate independent motor control
--   [ ] Implement line-position estimation
--   [ ] Establish baseline lap tests
--   [ ] Tune PID and compare against baseline
--   [ ] Add real prototype demo video
+## Safety
+Disconnect the battery before wiring. Use a correctly rated charger and battery protection. Never power the MCU from the raw 3S pack. Verify motor stall current against the driver rating, provide a common logic ground where required, and perform first motor tests with wheels raised. Do not leave a LiPo charging unattended.
 
 ## License
+See `LICENSE`.
 
-The project license has not yet been selected. Add the chosen license
-text to `LICENSE` before describing this repository as open source.
