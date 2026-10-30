@@ -3,7 +3,7 @@
 **Robotics Society of Varendra University (RSVU), Bangladesh**  
 **Status:** software prototype / hardware integration pending
 
-A modular control-software foundation for a line-following robot targeting an STM32F103C8T6 (Blue Pill), a 14-channel analog IR sensor array, TB6612FNG dual motor driver, two nominal 800 RPM geared motors, and a 3S 900 mAh LiPo/Li-ion pack (11.1 V nominal). Exact sensor model, motor electrical ratings, regulator, and measured performance remain unverified.
+A modular control-software foundation for a line-following robot targeting an STM32F103C8T6 (Blue Pill), a 14-channel analog/digital IR sensor array, TB6612FNG dual motor driver, two nominal 800-1500 RPM geared motors, and a compact LiPo/Li-ion pack (6.6 V nominal). Exact sensor model, motor electrical ratings, regulator, and measured performance remain unverified.
 
 ## Objectives
 - Sample and calibrate 14 analog channels.
