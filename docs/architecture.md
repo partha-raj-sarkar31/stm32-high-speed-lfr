@@ -15,4 +15,4 @@ ADC/DMA adapter (future) -> 14 raw samples -> per-channel calibration -> normali
 Target MCU: STM32F103C8T6. Add a CubeIDE project with HAL ADC/DMA, timer PWM, GPIO, watchdog, and a fixed-rate control loop only after pin mapping is confirmed. Do not put blocking delays in the control loop. Log sampled data over UART only at a rate that does not disrupt control timing.
 
 ## Required component specifications
-Obtain sensor part number/output voltage/spacing; motor rated voltage, no-load speed and stall current; TB6612FNG breakout schematic; battery chemistry/discharge rating; regulator input/output/current ratings; and chassis/wheel dimensions. Current and voltage compatibility are not verified by this document.
+Obtain sensor part number/output voltage/spacing; motor rated voltage, no-load speed and stall current; TB6612FNG breakout schematic; battery chemistry/discharge rating; regulator input/output/current ratings; and chassis/wheel dimensions. Current and voltage compatibility are not verified by this document it will be getting after collects actual Hardware .
